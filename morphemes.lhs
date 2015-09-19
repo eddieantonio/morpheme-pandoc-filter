@@ -125,3 +125,9 @@ Pandoc Stuff
 >         toStr LineBreak = " "
 
 > tag name str = "<" ++ name ++ ">" ++ str ++ "</" ++ name ++ ">"
+
+<style>
+x-gloss {
+    font-variant: small-caps;
+}
+</style>
