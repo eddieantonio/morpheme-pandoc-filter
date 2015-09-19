@@ -5,7 +5,7 @@ Shorthand
 Longhand
 ========
 
-{MORPHEME, ~1SG.PRO}: {morpheme+}
+{MORPHEME, .1sg.pro}: {morpheme+}
 
 In context:
 
@@ -27,8 +27,8 @@ Longhand
 [S, .plural](:-z,-s,-ɨz)
 
 
-Representation
-==============
+HTML Representation
+===================
 
 ```html
 <m-morph>{<m-canon>S</m-canon>,
@@ -36,17 +36,16 @@ Representation
 <m-allo>{-z}</m-allo>, <m-allo>{-s}</m-allow>
 ```
 
+
 Implementation
 ==============
 
-
-First things first, `Text.Pandoc.JSON`: this gives us `toJSONFilter`. Also
-import some other things!
+First things first, `Text.Pandoc.JSON`: this imports `toJSONFilter`. Also,
+we'll need some other things.
 
 > import Text.Pandoc.JSON
 > import Data.Char (toLower, toUpper)
 > import Data.List (intercalate)
-
 
 Next, the actual function itself:
 
@@ -72,12 +71,16 @@ regular form.
 >   morphemeFromText' morphText (cleanSplit alloText)
 
 > morphemeFromText' morphText allomorphs =
->   let (canonicalName, gloss) = cleanCleave morphText
->       prefix = "{" ++ (uppercase canonicalName) ++ ", "
->                    ++ "'" ++ (tag "x-gloss" gloss) ++ "'" ++ "}"
->       suffix = join ["{" ++ allo ++ "}" | allo <- allomorphs]
->    in prefix ++ ": " ++ suffix
+>    (formatMorpheme morphText) ++ ": " ++ (formatAllomorph allomorphs)
 
+> formatMorpheme text = "{" ++ (uppercase canonicalName) ++ ", "
+>       ++ "'" ++ (formatMeaning meaning) ++ "'" ++ "}"
+>   where (canonicalName, meaning) = cleanCleave text
+
+> formatAllomorph allomorphs = join ["{" ++ allo ++ "}" | allo <- allomorphs]
+
+> formatMeaning ('.':gloss) = tag "x-gloss" gloss
+> formatMeaning text = text
 
 
 Utilities
