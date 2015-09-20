@@ -10,12 +10,12 @@ Syntax
 
 For example, to give the form:
 
-[MORPHEME, .meaning](:allomorphα+,allomorphβ+)
+[MORPHEME, .meaning](:allomorphα+, allomorphβ+)
 
 One would type in a Markdown document:
 
 ``` markdown
-[MORPHEME, .meaning](:allomorphα+,allomorphβ+)
+[MORPHEME, .meaning](:allomorphα+, allomorphβ+)
 ```
 
 Shorthand
@@ -45,7 +45,7 @@ Shorthand
 Longhand
 --------
 
-[S, .plural](:-z,-s,-ɨz)
+[S, .plural](:-z, -s, -ɨz)
 
 HTML Representation
 ===================
@@ -89,9 +89,10 @@ First things first, `Text.Pandoc.JSON`: this imports `toJSONFilter`.
 
 > import Text.Pandoc.JSON
 
-Eventually, we'll to uppercase things and join sentences:
+These other standard library functions will also be used:
 
-> import Data.Char (toUpper)
+> import Numeric (readHex)
+> import Data.Char (chr, toUpper)
 > import Data.List (intercalate)
 
 Next, the actual function itself. It is only defined for HTML, so splice in
@@ -99,8 +100,8 @@ some `RawInline` HTML formatting.
 
 > makeMorphemes :: Maybe Format -> Inline -> Inline
 > makeMorphemes (Just format) (Link content (':':allomorphs, _))
->   | format == Format "html" = RawInline format
->       $ morphemeFromText (inlineConcat content) allomorphs
+>    | format == Format "html" = RawInline format
+>       $ morphemeFromText (inlineConcat content) (urldecode allomorphs)
 
 For every other `Inline` form, just pass it through.
 
@@ -186,6 +187,15 @@ Pandoc Stuff
 
 > tag :: String -> String -> String
 > tag name str = "<" ++ name ++ ">" ++ str ++ "</" ++ name ++ ">"
+
+Decodes a hex string.
+
+> urldecode :: [Char] -> String
+> urldecode ('%':a:b:rest) = (chr $ unhex [a,b]) : (urldecode rest)
+>   where unhex str = case readHex str of [(number, _)] -> number
+>                                         _             -> error $ "Could not parse " ++ str
+> urldecode (c:rest)       = c:(urldecode rest)
+> urldecode []             = []
 
 <style>
 /* Some styles for the actual document. */
