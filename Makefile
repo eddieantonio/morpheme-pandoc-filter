@@ -1,6 +1,6 @@
 BIN = morphemes
 HSC = ghc
-HSFLAGS =
+HSFLAGS = -Wall
 PREFIX = /usr/local
 
 all: index.html $(BIN)
