@@ -2,7 +2,7 @@
 % Eddie Antonio Santos
 % 0.1.1-2015-09-20
 
-This pandoc filter finds specially formatted links and converts them into (the
+This Pandoc filter finds specially formatted links and converts them into (the
 rather verbose) morpheme notation.
 
 Syntax
@@ -188,7 +188,8 @@ Pandoc Stuff
 > tag :: String -> String -> String
 > tag name str = "<" ++ name ++ ">" ++ str ++ "</" ++ name ++ ">"
 
-Decodes a hex string.
+Decodes a URL-encoded (percent-encoded) string. Useful because links are
+automatically URL-encoded.
 
 > urldecode :: [Char] -> String
 > urldecode ('%':a:b:rest) = (chr $ unhex [a,b]) : (urldecode rest)
