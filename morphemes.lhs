@@ -94,12 +94,16 @@ Eventually, we'll to uppercase things and join sentences:
 > import Data.Char (toUpper)
 > import Data.List (intercalate)
 
-Next, the actual function itself:
+Next, the actual function itself. It is only defined for HTML, so splice in
+some `RawInline` HTML formatting.
 
 > makeMorphemes :: Maybe Format -> Inline -> Inline
-> makeMorphemes (Just format) (Link content (':':allomorphs,_))
+> makeMorphemes (Just format) (Link content (':':allomorphs, _))
 >   | format == Format "html" = RawInline format
 >       $ morphemeFromText (inlineConcat content) allomorphs
+
+For every other `Inline` form, just pass it through.
+
 > makeMorphemes _ x = x
 
 Now process the text. Figure out if we're in the shorthand form or the
@@ -112,15 +116,20 @@ regular form.
 > morphemeFromText morphText alloText =
 >   morphemeFromText' morphText (cleanSplit alloText)
 
+
+> morphemeFromText' :: String -> [String] -> String
 > morphemeFromText' morphText allomorphs =
 >    (formatMorpheme morphText) ++ ": " ++ (formatAllomorph allomorphs)
 
+> formatMorpheme :: String -> String
 > formatMorpheme text = "{" ++ (uppercase canonicalName) ++ ", "
 >       ++ "'" ++ (formatMeaning meaning) ++ "'" ++ "}"
 >   where (canonicalName, meaning) = cleanCleave text
 
+> formatAllomorph :: [String] -> String
 > formatAllomorph allomorphs = join ["{" ++ allo ++ "}" | allo <- allomorphs]
 
+> formatMeaning :: String -> String
 > formatMeaning ('.':gloss) = tag "x-gloss" gloss
 > formatMeaning text = text
 
@@ -139,15 +148,17 @@ General string stuff
 > split str = split' (cleave str)
 
 > split' :: (String, String) -> [String]
-> split' (head, "") = [head]
-> split' (head, tail) = head : (split' $ cleave tail)
+> split' (first, "") = [first]
+> split' (first, rest) = first : (split' $ cleave rest)
 
+> cleanSplit :: String -> [String]
 > cleanSplit str = map trim $ split str
 
 > cleave :: String -> (String, String)
 > cleave str = case break (== ',') str of
 >   (prefix, (',':suffix)) -> (prefix, suffix)
->   (prefix, "") -> (prefix, "")
+>   (prefix, "")           -> (prefix, "")
+>   (_, _)                 -> error "Unexpected case"
 
 > trim :: String -> String
 > trim str = reverse . removeSpace . reverse . removeSpace $ str
@@ -167,11 +178,13 @@ Pandoc Stuff
 ------------
 
 > inlineConcat :: [Inline] -> String
-> inlineConcat inline = concatMap toStr inline
->   where toStr (Str text) = text
->         toStr Space = " "
->         toStr LineBreak = " "
+> inlineConcat inlines = concatMap toStr inlines
+>   where toStr (Str text)  = text
+>         toStr Space       = " "
+>         toStr LineBreak   = " "
+>         toStr unknown     = error $ "Unexpected form: " ++ (show unknown)
 
+> tag :: String -> String -> String
 > tag name str = "<" ++ name ++ ">" ++ str ++ "</" ++ name ++ ">"
 
 <style>
