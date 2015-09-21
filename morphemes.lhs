@@ -133,6 +133,11 @@ to the meaning.
 JSON Tree Matcher
 -----------------
 
+`main` simply uses `makeMorphemes` as a JSON tree walker.
+
+> main :: IO ()
+> main = toJSONFilter makeMorphemes
+
 Next, the actual function itself. It is only defined for HTML, so splice in
 some `RawInline` HTML formatting.
 
@@ -147,94 +152,153 @@ For every other `Inline` form, just pass it through.
 
 > makeMorphemes _ x = x
 
-Parsing the mini-langauge
+Parsing the mini-language
 -------------------------
 
-Figure out if we're in the shorthand form or the regular form. The shorthand
-form is used if the collon (`:`) appears standalone; else, it's the longhand
-form.
+Figure out if it's the shorthand form or the regular form. The shorthand form
+is used if the colon (`:`) appears standalone; else, it's the longhand form.
+Note that the colon is parsed away by `makeMorpheme`.
 
 > parseMorpheme :: String -> String -> Morpheme
 > parseMorpheme text ""    = parseShorthand text
 > parseMorpheme pair allos = parseLonghand pair allos
 
-Paring the shorthand means keeping the meaning as is, but parsing the form as
-an allomorph.
+Using the shorthand means keeping the meaning as is, but parsing the canonical
+form as an "allomorph." That "allomorph" is then used as the sole allomorph in
+the completed morpheme, and its inner text is used as the canonical name.
 
 > parseShorthand :: String -> Morpheme
 > parseShorthand pair = let
 >      (formText, meaningText) = cleanCleave pair
 >      meaning = parseMeaning meaningText
->      form@(Allomorph _ _ text) = parseAllomorph formText
->   in Morpheme text meaning [form]
+>      allomorph@(Allomorph _ _ canonicalName) = parseAllomorph formText
+>   in Morpheme canonicalName meaning [allomorph]
 
-The longhand is a bunch of bullcrap.
+In the longhand, all parts are parsed separately.
 
 > parseLonghand :: String -> String -> Morpheme
 > parseLonghand pair alloText = let
->      (form, meaningText) = cleanCleave pair
+>      (canonicalName, meaningText) = cleanCleave pair
 >      meaning = parseMeaning meaningText
 >      allomorphs = [parseAllomorph morph | morph <- cleanSplit alloText]
->   in Morpheme form meaning allomorphs
+>   in Morpheme canonicalName meaning allomorphs
 
----
-
-Parsing the meaning is relatively simple; if prefix
+Parsing the meaning is relatively simple. If the meaning is prefixed by a
+"`.`", then it's a gloss; otherwise it's a translation.
 
 > parseMeaning :: String -> Meaning
 > parseMeaning ('.':text) = Meaning Grammatical text
 > parseMeaning text       = Meaning Lexical     text
 
-This gets a little complicated. If the
+Parsing allomorphs, however, is a bit more involved.
 
 > parseAllomorph :: String -> Allomorph
 > parseAllomorph text@(a:rest)
+
+We have to figure out its attachment based on the first and last character
+(dubbed `a` and `z`, respectively).
+
 >   | isFix a && isFix z = Allomorph Infix  (kind a) (init rest)
->   | isFix z            = Allomorph Prefix (kind z) (init text)
 >   | isFix a            = Allomorph Suffix (kind a) rest
+>   | isFix z            = Allomorph Prefix (kind z) (init text)
+
+When neither the first or last characters are "'fixes", then it must be a free
+morpheme. Note that the kind (lexical or grammatical) does not really make a
+difference here, so we assign it arbitrarily.
+
 >   | True               = Allomorph Free   Lexical  text
 >   where z = last text
-> parseAllomorph "" = error "This should be parsed as a shortform"
+> parseAllomorph "" = undefined
+
+A "'fix" is either a `+` or `-` character.
 
 > isFix :: Char -> Bool
 > isFix '+' = True
 > isFix '-' = True
 > isFix _   = False
 
+To determine its kind, we also judge based on the whether the character is a
+`+` or `-`.
+
 > kind :: Char -> Kind
 > kind '+' = Lexical
 > kind '-' = Grammatical
 > kind c   = error $ "Undefined kind " ++ [c]
 
+Another possible approach uses `Maybe to combine the last two functions into
+one:
+
+< fixKind :: Char -> Maybe Kind
+< fixKind '+' = Just Lexical
+< fixKind '-' = Just Grammatical
+< fixKind _   = Nothing
+
+Formatting
+----------
+
+According to the Jordan Lachler's specification:
+
+<blockquote>
+ 1. For each morpheme,
+     a.  an open curly bracket `{`
+     b.  the "name" of the morpheme, in ALL CAPS
+     c.  a comma
+     d.  the gloss/translation/meaning of the morph, inside 'single quotes'
+
+         NOTE: If the gloss is lexical, use regular lowercase type (‘dog’);
+         if the gloss is grammatical, use small capitals (‘MASCULINE
+         SINGULAR DEFINITE’)
+     e. a close curly bracket `}`
+ 2. Then put a colon `:`
+</blockquote>
 
 > formatMorpheme :: Morpheme -> String
 > formatMorpheme (Morpheme canonicalName meaning allomorphs@(_:_))
 >   = "{" ++ (uppercase canonicalName) ++ ", "
 >         ++ "'" ++ (formatMeaning meaning) ++ "}: "
 >         ++ (formatAllomorphs allomorphs)
-> formatMorpheme _ = error "Must have at least one allomorph"
+> formatMorpheme _ = error "Morpheme must contain at least one allomorph"
+
+<blockquote>
+  3. Then, for each allomorph that belongs to that morpheme, put:
+      a. an open curly bracket `{`
+      b. the form of the allomorph, in regular lowercase type
+      c. a close curly bracket `}`
+      d. if there is more than one allomorph, put a comma between allomorphs
+</blockquote>
 
 > formatAllomorphs :: [Allomorph] -> String
 > formatAllomorphs allomorphs
 >     = join ["{" ++ (formatAllomorph allo) ++ "}" | allo <- allomorphs]
 
+<blockquote>
+ 4. If the allomorph is
+     a. free, then put nothing on either side – {perro}
+     b. a suffix, then put a hyphen on the left side – {-and}
+     c. a prefix, then put a hyphen on the right side – {anti-} d. an infix, then
+        put a hyphen on either side – {-frickin-}
+     e. a bound lexical root that requires a suffix, then put a plus on the right
+        side – {duerm+}
+     f. a bound lexical root that requires a prefix, then put a plus on the left
+        side – {+ceive}
+     g. a bound lexical root that requires a suffix and a prefix, then put a plus
+        on the right and left sides – {+ku+}
+</blockquote>
+
 > formatAllomorph :: Allomorph -> String
 > formatAllomorph (Allomorph Free    _          x) = x
-> formatAllomorph (Allomorph Suffix Lexical     x) = "+" ++ x
-> formatAllomorph (Allomorph Infix  Lexical     x) = "+" ++ x ++ "+"
-> formatAllomorph (Allomorph Prefix Lexical     x) =        x ++ "+"
 > formatAllomorph (Allomorph Suffix Grammatical x) = "-" ++ x
-> formatAllomorph (Allomorph Infix  Grammatical x) = "-" ++ x ++ "-"
 > formatAllomorph (Allomorph Prefix Grammatical x) =        x ++ "-"
+> formatAllomorph (Allomorph Infix  Grammatical x) = "-" ++ x ++ "-"
+> formatAllomorph (Allomorph Suffix Lexical     x) = "+" ++ x
+> formatAllomorph (Allomorph Prefix Lexical     x) =        x ++ "+"
+> formatAllomorph (Allomorph Infix  Lexical     x) = "+" ++ x ++ "+"
+
+We'll just "gloss" over this function. 😉
 
 > formatMeaning :: Meaning -> String
 > formatMeaning (Meaning Grammatical gloss) = tag "x-gloss" gloss
 > formatMeaning (Meaning _ text) = text
-
-Finally, `main`, which simply uses `makeMorphemes` as a JSON tree walker.
-
-> main :: IO ()
-> main = toJSONFilter makeMorphemes
 
 Utilities
 =========
@@ -299,7 +363,7 @@ automatically URL-encoded.
 /* Some styles for the actual document. */
 body {
     font-family: sans-serif;
-    max-width: 32em;
+    max-width: 35em;
     margin: auto;
 }
 
@@ -309,6 +373,12 @@ body {
 
 .date {
     display: none
+}
+
+blockquote {
+    margin: 0;
+    padding: 1px 1em;
+    background-color: rgba(0,0,0,0.1);
 }
 
 x-gloss {
