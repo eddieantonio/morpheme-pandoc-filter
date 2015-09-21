@@ -1,6 +1,6 @@
 % Morpheme Pandoc Filter
 % Eddie Antonio Santos
-% 0.1.1-2015-09-20
+% 0.2.0-2015-09-20
 
 This Pandoc filter finds specially formatted links and converts them into (the
 rather verbose) morpheme notation.
@@ -95,46 +95,143 @@ These other standard library functions will also be used:
 > import Data.Char (chr, toUpper)
 > import Data.List (intercalate)
 
+Types
+-----
+
+A morpheme contains itself, a string representing its "canoncical name", its
+meaning (lexical or grammatical), and any of its allomorphs. Every morpheme
+should have at least *one* "allomorph" (that is to say, its sole attested
+form).
+
+> data Morpheme = Morpheme String Meaning [Allomorph]
+>   deriving (Eq, Read, Show)
+
+Meaning is simply the lexical or grammatical, and the text to be displayed.
+
+> data Meaning = Meaning Kind String
+>   deriving (Eq, Read, Show)
+
+An allomorph has an *attachment* (see below) and is either formatted as a
+grammatical or lexical morpheme. Note that this formatting need not be related
+to the meaning.
+
+> data Allomorph = Allomorph Attachment Kind String
+>   deriving (Eq, Read, Show)
+
+> data Attachment
+>   = Free
+>   | Prefix
+>   | Suffix
+>   | Infix
+>   deriving (Eq, Read, Show)
+
+> data Kind
+>   = Lexical
+>   | Grammatical
+>   deriving (Eq, Read, Show)
+
+JSON Tree Matcher
+-----------------
+
 Next, the actual function itself. It is only defined for HTML, so splice in
 some `RawInline` HTML formatting.
 
 > makeMorphemes :: Maybe Format -> Inline -> Inline
 > makeMorphemes (Just format) (Link content (':':allomorphs, _))
->    | format == Format "html" = RawInline format
->       $ morphemeFromText (inlineConcat content) (urldecode allomorphs)
+>   | format == Format "html" = RawInline format
+>       $ formatMorpheme $ parseMorpheme morphText alloText
+>   where morphText = inlineConcat content
+>         alloText = urldecode allomorphs
 
 For every other `Inline` form, just pass it through.
 
 > makeMorphemes _ x = x
 
-Now process the text. Figure out if we're in the shorthand form or the
-regular form.
+Parsing the mini-langauge
+-------------------------
 
-> morphemeFromText :: String -> String -> String
-> morphemeFromText morphText "" =
->   let (canonoicalName, _) = cleanCleave morphText
->       in morphemeFromText' morphText [canonoicalName]
-> morphemeFromText morphText alloText =
->   morphemeFromText' morphText (cleanSplit alloText)
+Figure out if we're in the shorthand form or the regular form. The shorthand
+form is used if the collon (`:`) appears standalone; else, it's the longhand
+form.
+
+> parseMorpheme :: String -> String -> Morpheme
+> parseMorpheme text ""    = parseShorthand text
+> parseMorpheme pair allos = parseLonghand pair allos
+
+Paring the shorthand means keeping the meaning as is, but parsing the form as
+an allomorph.
+
+> parseShorthand :: String -> Morpheme
+> parseShorthand pair = let
+>      (formText, meaningText) = cleanCleave pair
+>      meaning = parseMeaning meaningText
+>      form@(Allomorph _ _ text) = parseAllomorph formText
+>   in Morpheme text meaning [form]
+
+The longhand is a bunch of bullcrap.
+
+> parseLonghand :: String -> String -> Morpheme
+> parseLonghand pair alloText = let
+>      (form, meaningText) = cleanCleave pair
+>      meaning = parseMeaning meaningText
+>      allomorphs = [parseAllomorph morph | morph <- cleanSplit alloText]
+>   in Morpheme form meaning allomorphs
+
+---
+
+Parsing the meaning is relatively simple; if prefix
+
+> parseMeaning :: String -> Meaning
+> parseMeaning ('.':text) = Meaning Grammatical text
+> parseMeaning text       = Meaning Lexical     text
+
+This gets a little complicated. If the
+
+> parseAllomorph :: String -> Allomorph
+> parseAllomorph text@(a:rest)
+>   | isFix a && isFix z = Allomorph Infix  (kind a) (init rest)
+>   | isFix z            = Allomorph Prefix (kind z) (init text)
+>   | isFix a            = Allomorph Suffix (kind a) rest
+>   | True               = Allomorph Free   Lexical  text
+>   where z = last text
+> parseAllomorph "" = error "This should be parsed as a shortform"
+
+> isFix :: Char -> Bool
+> isFix '+' = True
+> isFix '-' = True
+> isFix _   = False
+
+> kind :: Char -> Kind
+> kind '+' = Lexical
+> kind '-' = Grammatical
+> kind c   = error $ "Undefined kind " ++ [c]
 
 
-> morphemeFromText' :: String -> [String] -> String
-> morphemeFromText' morphText allomorphs =
->    (formatMorpheme morphText) ++ ": " ++ (formatAllomorph allomorphs)
+> formatMorpheme :: Morpheme -> String
+> formatMorpheme (Morpheme canonicalName meaning allomorphs@(_:_))
+>   = "{" ++ (uppercase canonicalName) ++ ", "
+>         ++ "'" ++ (formatMeaning meaning) ++ "}: "
+>         ++ (formatAllomorphs allomorphs)
+> formatMorpheme _ = error "Must have at least one allomorph"
 
-> formatMorpheme :: String -> String
-> formatMorpheme text = "{" ++ (uppercase canonicalName) ++ ", "
->       ++ "'" ++ (formatMeaning meaning) ++ "'" ++ "}"
->   where (canonicalName, meaning) = cleanCleave text
+> formatAllomorphs :: [Allomorph] -> String
+> formatAllomorphs allomorphs
+>     = join ["{" ++ (formatAllomorph allo) ++ "}" | allo <- allomorphs]
 
-> formatAllomorph :: [String] -> String
-> formatAllomorph allomorphs = join ["{" ++ allo ++ "}" | allo <- allomorphs]
+> formatAllomorph :: Allomorph -> String
+> formatAllomorph (Allomorph Free    _          x) = x
+> formatAllomorph (Allomorph Prefix Lexical     x) = "+" ++ x
+> formatAllomorph (Allomorph Infix  Lexical     x) = "+" ++ x ++ "+"
+> formatAllomorph (Allomorph Suffix Lexical     x) =        x ++ "+"
+> formatAllomorph (Allomorph Prefix Grammatical x) = "-" ++ x
+> formatAllomorph (Allomorph Infix  Grammatical x) = "-" ++ x ++ "-"
+> formatAllomorph (Allomorph Suffix Grammatical x) =        x ++ "-"
 
-> formatMeaning :: String -> String
-> formatMeaning ('.':gloss) = tag "x-gloss" gloss
-> formatMeaning text = text
+> formatMeaning :: Meaning -> String
+> formatMeaning (Meaning Grammatical gloss) = tag "x-gloss" gloss
+> formatMeaning (Meaning _ text) = text
 
-Finally, `main`, which simply uses makeMorphemes as a JSON tree walker.
+Finally, `main`, which simply uses `makeMorphemes` as a JSON tree walker.
 
 > main :: IO ()
 > main = toJSONFilter makeMorphemes
