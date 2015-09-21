@@ -275,8 +275,8 @@ According to the Jordan Lachler's specification:
  4. If the allomorph is
      a. free, then put nothing on either side – {perro}
      b. a suffix, then put a hyphen on the left side – {-and}
-     c. a prefix, then put a hyphen on the right side – {anti-} d. an infix, then
-        put a hyphen on either side – {-frickin-}
+     c. a prefix, then put a hyphen on the right side – {anti-}
+     d. an infix, then put a hyphen on either side – {-frickin-}
      e. a bound lexical root that requires a suffix, then put a plus on the right
         side – {duerm+}
      f. a bound lexical root that requires a prefix, then put a plus on the left
