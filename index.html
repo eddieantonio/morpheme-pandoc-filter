@@ -1,0 +1,315 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Eddie Antonio Santos" />
+  <title>Morpheme Pandoc Filter</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+</head>
+<body>
+<div id="header">
+<h1 class="title">Morpheme Pandoc Filter</h1>
+<h2 class="author">Eddie Antonio Santos</h2>
+<h3 class="date">0.2.0-2015-09-20</h3>
+</div>
+<p>This Pandoc filter finds specially formatted links and converts them into (the rather verbose) morpheme notation.</p>
+<h1 id="syntax">Syntax</h1>
+<p>For example, to give the form:</p>
+<p>{MORPHEME, '<x-gloss>meaning</x-gloss>}: {allomorphα+}, {allomorphβ+}</p>
+<p>One would type in a Markdown document:</p>
+<div class="sourceCode"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span class="ot">[MORPHEME, .meaning](:allomorphα+, allomorphβ+)</span></code></pre></div>
+<h2 id="shorthand">Shorthand</h2>
+<p>A shorthand is provided which allows for quick typing of the most common case: when a morpheme has only one allomorph:</p>
+<div class="sourceCode"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span class="ot">[-morpheme-, meaning](:)</span></code></pre></div>
+<p>Which renders as:</p>
+<p>{MORPHEME, 'meaning}: {-morpheme-}</p>
+<h1 id="examples">Examples</h1>
+<h2 id="shorthand-1">Shorthand</h2>
+<p>{BERRY, 'berry (kind of)}: {+berry}</p>
+<p>{’S, '<x-gloss>1st person possessive</x-gloss>}: {-’s}</p>
+<h2 id="longhand">Longhand</h2>
+<p>{S, '<x-gloss>plural</x-gloss>}: {-z}, {-s}, {-ɨz}</p>
+<h1 id="html-representation">HTML Representation</h1>
+<p>Its plausbile HTML representation may output using <a href="http://webcomponents.org/articles/introduction-to-custom-elements/">custom elements</a>.</p>
+<dl>
+<dt><code>&lt;m-morph&gt;</code></dt>
+<dd>Wraps an entire morpheme
+</dd>
+<dt><code>&lt;m-canon&gt;</code></dt>
+<dd>Canonical name of the morpheme
+</dd>
+<dt><code>&lt;m-meaning&gt;</code></dt>
+<dd>A short description of the meaning of the morpheme. For lexical morphemes, this may simply be a single word translation; for grammatical morphemes, this may be a gloss.
+</dd>
+<dt><code>&lt;x-gloss&gt;</code></dt>
+<dd>A <a href="https://en.wikipedia.org/wiki/List_of_glossing_abbreviations">glossing abbreviation</a>.
+</dd>
+<dt><code>&lt;m-allo&gt;</code></dt>
+<dd>An allomorph.
+</dd>
+</dl>
+<div class="sourceCode"><pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;m-morph&gt;</span>
+    {
+        <span class="kw">&lt;m-canon&gt;</span>S<span class="kw">&lt;/m-canon&gt;</span>,
+        <span class="kw">&lt;m-meaning&gt;</span>&gt;<span class="kw">&lt;x-gloss&gt;</span>PLURAL<span class="kw">&lt;/x-gloss&gt;&lt;/m-meaning&gt;</span>
+    }:
+    <span class="kw">&lt;m-allo&gt;</span>{-z}<span class="kw">&lt;/m-allo&gt;</span>, <span class="kw">&lt;m-allo&gt;</span>{-s}<span class="kw">&lt;/m-allo&gt;</span>
+<span class="kw">&lt;/m-morph&gt;</span></code></pre></div>
+<h1 id="implementation">Implementation</h1>
+<p>First things first, <code>Text.Pandoc.JSON</code>: this imports <code>toJSONFilter</code>.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Text.Pandoc.JSON</span></code></pre></div>
+<p>These other standard library functions will also be used:</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">import </span><span class="dt">Numeric</span> (readHex)
+<span class="kw">import </span><span class="dt">Data.Char</span> (chr, toUpper)
+<span class="kw">import </span><span class="dt">Data.List</span> (intercalate)</code></pre></div>
+<h2 id="types">Types</h2>
+<p>A morpheme contains itself, a string representing its “canoncical name”, its meaning (lexical or grammatical), and any of its allomorphs. Every morpheme should have at least <em>one</em> “allomorph” (that is to say, its sole attested form).</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Morpheme</span> <span class="fu">=</span> <span class="dt">Morpheme</span> <span class="dt">String</span> <span class="dt">Meaning</span> [<span class="dt">Allomorph</span>]
+  <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Read</span>, <span class="dt">Show</span>)</code></pre></div>
+<p>Meaning is simply the lexical or grammatical, and the text to be displayed.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Meaning</span> <span class="fu">=</span> <span class="dt">Meaning</span> <span class="dt">Kind</span> <span class="dt">String</span>
+  <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Read</span>, <span class="dt">Show</span>)</code></pre></div>
+<p>An allomorph has an <em>attachment</em> (see below) and is either formatted as a grammatical or lexical morpheme. Note that this formatting need not be related to the meaning.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Allomorph</span> <span class="fu">=</span> <span class="dt">Allomorph</span> <span class="dt">Attachment</span> <span class="dt">Kind</span> <span class="dt">String</span>
+  <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Read</span>, <span class="dt">Show</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Attachment</span>
+  <span class="fu">=</span> <span class="dt">Free</span>
+  <span class="fu">|</span> <span class="dt">Prefix</span>
+  <span class="fu">|</span> <span class="dt">Suffix</span>
+  <span class="fu">|</span> <span class="dt">Infix</span>
+  <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Read</span>, <span class="dt">Show</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Kind</span>
+  <span class="fu">=</span> <span class="dt">Lexical</span>
+  <span class="fu">|</span> <span class="dt">Grammatical</span>
+  <span class="kw">deriving</span> (<span class="dt">Eq</span>, <span class="dt">Read</span>, <span class="dt">Show</span>)</code></pre></div>
+<h2 id="json-tree-matcher">JSON Tree Matcher</h2>
+<p><code>main</code> simply uses <code>makeMorphemes</code> as a JSON tree walker.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">main ::</span> <span class="dt">IO</span> ()
+main <span class="fu">=</span> toJSONFilter makeMorphemes</code></pre></div>
+<p>Next, the actual function itself. It is only defined for HTML, so splice in some <code>RawInline</code> HTML formatting.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">makeMorphemes ::</span> <span class="dt">Maybe</span> <span class="dt">Format</span> <span class="ot">-&gt;</span> <span class="dt">Inline</span> <span class="ot">-&gt;</span> <span class="dt">Inline</span>
+makeMorphemes (<span class="dt">Just</span> format) (<span class="dt">Link</span> content (<span class="ch">&#39;:&#39;</span><span class="fu">:</span>allomorphs, _))
+  <span class="fu">|</span> format <span class="fu">==</span> <span class="dt">Format</span> <span class="st">&quot;html&quot;</span> <span class="fu">=</span> <span class="dt">RawInline</span> format
+      <span class="fu">$</span> formatMorpheme <span class="fu">$</span> parseMorpheme morphText alloText
+  <span class="kw">where</span> morphText <span class="fu">=</span> inlineConcat content
+        alloText <span class="fu">=</span> urldecode allomorphs</code></pre></div>
+<p>For every other <code>Inline</code> form, just pass it through.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell">makeMorphemes _ x <span class="fu">=</span> x</code></pre></div>
+<h2 id="parsing-the-mini-language">Parsing the mini-language</h2>
+<p>Figure out if it’s the shorthand form or the regular form. The shorthand form is used if the colon (<code>:</code>) appears standalone; else, it’s the longhand form. Note that the colon is parsed away by <code>makeMorpheme</code>.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">parseMorpheme ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Morpheme</span>
+parseMorpheme text <span class="st">&quot;&quot;</span>    <span class="fu">=</span> parseShorthand text
+parseMorpheme pair allos <span class="fu">=</span> parseLonghand pair allos</code></pre></div>
+<p>Using the shorthand means keeping the meaning as is, but parsing the canonical form as an “allomorph.” That “allomorph” is then used as the sole allomorph in the completed morpheme, and its inner text is used as the canonical name.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">parseShorthand ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Morpheme</span>
+parseShorthand pair <span class="fu">=</span> <span class="kw">let</span>
+     (formText, meaningText) <span class="fu">=</span> cleanCleave pair
+     meaning <span class="fu">=</span> parseMeaning meaningText
+     allomorph<span class="fu">@</span>(<span class="dt">Allomorph</span> _ _ canonicalName) <span class="fu">=</span> parseAllomorph formText
+  <span class="kw">in</span> <span class="dt">Morpheme</span> canonicalName meaning [allomorph]</code></pre></div>
+<p>In the longhand, all parts are parsed separately.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">parseLonghand ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Morpheme</span>
+parseLonghand pair alloText <span class="fu">=</span> <span class="kw">let</span>
+     (canonicalName, meaningText) <span class="fu">=</span> cleanCleave pair
+     meaning <span class="fu">=</span> parseMeaning meaningText
+     allomorphs <span class="fu">=</span> [parseAllomorph morph <span class="fu">|</span> morph <span class="ot">&lt;-</span> cleanSplit alloText]
+  <span class="kw">in</span> <span class="dt">Morpheme</span> canonicalName meaning allomorphs</code></pre></div>
+<p>Parsing the meaning is relatively simple. If the meaning is prefixed by a “<code>.</code>”, then it’s a gloss; otherwise it’s a translation.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">parseMeaning ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Meaning</span>
+parseMeaning (<span class="ch">&#39;.&#39;</span><span class="fu">:</span>text) <span class="fu">=</span> <span class="dt">Meaning</span> <span class="dt">Grammatical</span> text
+parseMeaning text       <span class="fu">=</span> <span class="dt">Meaning</span> <span class="dt">Lexical</span>     text</code></pre></div>
+<p>Parsing allomorphs, however, is a bit more involved.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">parseAllomorph ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Allomorph</span>
+parseAllomorph text<span class="fu">@</span>(a<span class="fu">:</span>rest)</code></pre></div>
+<p>We have to figure out its attachment based on the first and last character (dubbed <code>a</code> and <code>z</code>, respectively).</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell">  <span class="fu">|</span> isFix a <span class="fu">&amp;&amp;</span> isFix z <span class="fu">=</span> <span class="dt">Allomorph</span> <span class="dt">Infix</span>  (kind a) (init rest)
+  <span class="fu">|</span> isFix a            <span class="fu">=</span> <span class="dt">Allomorph</span> <span class="dt">Suffix</span> (kind a) rest
+  <span class="fu">|</span> isFix z            <span class="fu">=</span> <span class="dt">Allomorph</span> <span class="dt">Prefix</span> (kind z) (init text)</code></pre></div>
+<p>When neither the first or last characters are “’fixes”, then it must be a free morpheme. Note that the kind (lexical or grammatical) does not really make a difference here, so we assign it arbitrarily.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell">  <span class="fu">|</span> <span class="dt">True</span>               <span class="fu">=</span> <span class="dt">Allomorph</span> <span class="dt">Free</span>   <span class="dt">Lexical</span>  text
+  <span class="kw">where</span> z <span class="fu">=</span> last text
+parseAllomorph <span class="st">&quot;&quot;</span> <span class="fu">=</span> undefined</code></pre></div>
+<p>A “’fix” is either a <code>+</code> or <code>-</code> character.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">isFix ::</span> <span class="dt">Char</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span>
+isFix <span class="ch">&#39;+&#39;</span> <span class="fu">=</span> <span class="dt">True</span>
+isFix <span class="ch">&#39;-&#39;</span> <span class="fu">=</span> <span class="dt">True</span>
+isFix _   <span class="fu">=</span> <span class="dt">False</span></code></pre></div>
+<p>To determine its kind, we also judge based on the whether the character is a <code>+</code> or <code>-</code>.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">kind ::</span> <span class="dt">Char</span> <span class="ot">-&gt;</span> <span class="dt">Kind</span>
+kind <span class="ch">&#39;+&#39;</span> <span class="fu">=</span> <span class="dt">Lexical</span>
+kind <span class="ch">&#39;-&#39;</span> <span class="fu">=</span> <span class="dt">Grammatical</span>
+kind c   <span class="fu">=</span> error <span class="fu">$</span> <span class="st">&quot;Undefined kind &quot;</span> <span class="fu">++</span> [c]</code></pre></div>
+<p>Another possible approach uses `Maybe to combine the last two functions into one:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">fixKind ::</span> <span class="dt">Char</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Kind</span>
+fixKind <span class="ch">&#39;+&#39;</span> <span class="fu">=</span> <span class="dt">Just</span> <span class="dt">Lexical</span>
+fixKind <span class="ch">&#39;-&#39;</span> <span class="fu">=</span> <span class="dt">Just</span> <span class="dt">Grammatical</span>
+fixKind _   <span class="fu">=</span> <span class="dt">Nothing</span></code></pre></div>
+<h2 id="formatting">Formatting</h2>
+<p>According to the Jordan Lachler’s specification:</p>
+<blockquote>
+<ol style="list-style-type: decimal">
+<li>For each morpheme,
+<ol style="list-style-type: lower-alpha">
+<li>an open curly bracket <code>{</code></li>
+<li>the “name” of the morpheme, in ALL CAPS</li>
+<li>a comma</li>
+<li><p>the gloss/translation/meaning of the morph, inside ‘single quotes’</p>
+NOTE: If the gloss is lexical, use regular lowercase type (‘dog’); if the gloss is grammatical, use small capitals (‘MASCULINE SINGULAR DEFINITE’)</li>
+<li>a close curly bracket <code>}</code></li>
+</ol></li>
+<li>Then put a colon <code>:</code></li>
+</ol>
+</blockquote>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">formatMorpheme ::</span> <span class="dt">Morpheme</span> <span class="ot">-&gt;</span> <span class="dt">String</span>
+formatMorpheme (<span class="dt">Morpheme</span> canonicalName meaning allomorphs<span class="fu">@</span>(_<span class="fu">:</span>_))
+  <span class="fu">=</span> <span class="st">&quot;{&quot;</span> <span class="fu">++</span> (uppercase canonicalName) <span class="fu">++</span> <span class="st">&quot;, &quot;</span>
+        <span class="fu">++</span> <span class="st">&quot;&#39;&quot;</span> <span class="fu">++</span> (formatMeaning meaning) <span class="fu">++</span> <span class="st">&quot;}: &quot;</span>
+        <span class="fu">++</span> (formatAllomorphs allomorphs)
+formatMorpheme _ <span class="fu">=</span> error <span class="st">&quot;Morpheme must contain at least one allomorph&quot;</span></code></pre></div>
+<blockquote>
+<ol start="3" style="list-style-type: decimal">
+<li>Then, for each allomorph that belongs to that morpheme, put:
+<ol style="list-style-type: lower-alpha">
+<li>an open curly bracket <code>{</code></li>
+<li>the form of the allomorph, in regular lowercase type</li>
+<li>a close curly bracket <code>}</code></li>
+<li>if there is more than one allomorph, put a comma between allomorphs</li>
+</ol></li>
+</ol>
+</blockquote>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">formatAllomorphs ::</span> [<span class="dt">Allomorph</span>] <span class="ot">-&gt;</span> <span class="dt">String</span>
+formatAllomorphs allomorphs
+    <span class="fu">=</span> join [<span class="st">&quot;{&quot;</span> <span class="fu">++</span> (formatAllomorph allo) <span class="fu">++</span> <span class="st">&quot;}&quot;</span> <span class="fu">|</span> allo <span class="ot">&lt;-</span> allomorphs]</code></pre></div>
+<blockquote>
+<ol start="4" style="list-style-type: decimal">
+<li>If the allomorph is
+<ol style="list-style-type: lower-alpha">
+<li>free, then put nothing on either side – {perro}</li>
+<li>a suffix, then put a hyphen on the left side – {-and}</li>
+<li>a prefix, then put a hyphen on the right side – {anti-}</li>
+<li>an infix, then put a hyphen on either side – {-frickin-}</li>
+<li>a bound lexical root that requires a suffix, then put a plus on the right side – {duerm+}</li>
+<li>a bound lexical root that requires a prefix, then put a plus on the left side – {+ceive}</li>
+<li>a bound lexical root that requires a suffix and a prefix, then put a plus on the right and left sides – {+ku+}</li>
+</ol></li>
+</ol>
+</blockquote>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">formatAllomorph ::</span> <span class="dt">Allomorph</span> <span class="ot">-&gt;</span> <span class="dt">String</span>
+formatAllomorph (<span class="dt">Allomorph</span> <span class="dt">Free</span>    _          x) <span class="fu">=</span> x
+formatAllomorph (<span class="dt">Allomorph</span> <span class="dt">Suffix</span> <span class="dt">Grammatical</span> x) <span class="fu">=</span> <span class="st">&quot;-&quot;</span> <span class="fu">++</span> x
+formatAllomorph (<span class="dt">Allomorph</span> <span class="dt">Prefix</span> <span class="dt">Grammatical</span> x) <span class="fu">=</span>        x <span class="fu">++</span> <span class="st">&quot;-&quot;</span>
+formatAllomorph (<span class="dt">Allomorph</span> <span class="dt">Infix</span>  <span class="dt">Grammatical</span> x) <span class="fu">=</span> <span class="st">&quot;-&quot;</span> <span class="fu">++</span> x <span class="fu">++</span> <span class="st">&quot;-&quot;</span>
+formatAllomorph (<span class="dt">Allomorph</span> <span class="dt">Suffix</span> <span class="dt">Lexical</span>     x) <span class="fu">=</span> <span class="st">&quot;+&quot;</span> <span class="fu">++</span> x
+formatAllomorph (<span class="dt">Allomorph</span> <span class="dt">Prefix</span> <span class="dt">Lexical</span>     x) <span class="fu">=</span>        x <span class="fu">++</span> <span class="st">&quot;+&quot;</span>
+formatAllomorph (<span class="dt">Allomorph</span> <span class="dt">Infix</span>  <span class="dt">Lexical</span>     x) <span class="fu">=</span> <span class="st">&quot;+&quot;</span> <span class="fu">++</span> x <span class="fu">++</span> <span class="st">&quot;+&quot;</span></code></pre></div>
+<p>We’ll just “gloss” over this function. 😉</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">formatMeaning ::</span> <span class="dt">Meaning</span> <span class="ot">-&gt;</span> <span class="dt">String</span>
+formatMeaning (<span class="dt">Meaning</span> <span class="dt">Grammatical</span> gloss) <span class="fu">=</span> tag <span class="st">&quot;x-gloss&quot;</span> gloss
+formatMeaning (<span class="dt">Meaning</span> _ text) <span class="fu">=</span> text</code></pre></div>
+<h1 id="utilities">Utilities</h1>
+<h2 id="general-string-stuff">General string stuff</h2>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">split ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> [<span class="dt">String</span>]
+split str <span class="fu">=</span> split&#39; (cleave str)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">split&#39; ::</span> (<span class="dt">String</span>, <span class="dt">String</span>) <span class="ot">-&gt;</span> [<span class="dt">String</span>]
+split&#39; (first, <span class="st">&quot;&quot;</span>) <span class="fu">=</span> [first]
+split&#39; (first, rest) <span class="fu">=</span> first <span class="fu">:</span> (split&#39; <span class="fu">$</span> cleave rest)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">cleanSplit ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> [<span class="dt">String</span>]
+cleanSplit str <span class="fu">=</span> map trim <span class="fu">$</span> split str</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">cleave ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> (<span class="dt">String</span>, <span class="dt">String</span>)
+cleave str <span class="fu">=</span> <span class="kw">case</span> break (<span class="fu">==</span> <span class="ch">&#39;,&#39;</span>) str <span class="kw">of</span>
+  (prefix, (<span class="ch">&#39;,&#39;</span><span class="fu">:</span>suffix)) <span class="ot">-&gt;</span> (prefix, suffix)
+  (prefix, <span class="st">&quot;&quot;</span>)           <span class="ot">-&gt;</span> (prefix, <span class="st">&quot;&quot;</span>)
+  (_, _)                 <span class="ot">-&gt;</span> error <span class="st">&quot;Unexpected case&quot;</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">trim ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">String</span>
+trim str <span class="fu">=</span> reverse <span class="fu">.</span> removeSpace <span class="fu">.</span> reverse <span class="fu">.</span> removeSpace <span class="fu">$</span> str
+  <span class="kw">where</span> removeSpace <span class="fu">=</span> dropWhile (<span class="fu">==</span> <span class="ch">&#39; &#39;</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">cleanCleave ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> (<span class="dt">String</span>, <span class="dt">String</span>)
+cleanCleave str <span class="fu">=</span> (prefix, trim suffix)
+  <span class="kw">where</span> (prefix, suffix) <span class="fu">=</span> cleave str</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">join ::</span> [<span class="dt">String</span>] <span class="ot">-&gt;</span> <span class="dt">String</span>
+join <span class="fu">=</span> intercalate <span class="st">&quot;, &quot;</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">uppercase ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">String</span>
+uppercase <span class="fu">=</span> map toUpper</code></pre></div>
+<h2 id="pandoc-stuff">Pandoc Stuff</h2>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">inlineConcat ::</span> [<span class="dt">Inline</span>] <span class="ot">-&gt;</span> <span class="dt">String</span>
+inlineConcat inlines <span class="fu">=</span> concatMap toStr inlines
+  <span class="kw">where</span> toStr (<span class="dt">Str</span> text)  <span class="fu">=</span> text
+        toStr <span class="dt">Space</span>       <span class="fu">=</span> <span class="st">&quot; &quot;</span>
+        toStr <span class="dt">LineBreak</span>   <span class="fu">=</span> <span class="st">&quot; &quot;</span>
+        toStr unknown     <span class="fu">=</span> error <span class="fu">$</span> <span class="st">&quot;Unexpected form: &quot;</span> <span class="fu">++</span> (show unknown)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">tag ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">String</span>
+tag name str <span class="fu">=</span> <span class="st">&quot;&lt;&quot;</span> <span class="fu">++</span> name <span class="fu">++</span> <span class="st">&quot;&gt;&quot;</span> <span class="fu">++</span> str <span class="fu">++</span> <span class="st">&quot;&lt;/&quot;</span> <span class="fu">++</span> name <span class="fu">++</span> <span class="st">&quot;&gt;&quot;</span></code></pre></div>
+<p>Decodes a URL-encoded (percent-encoded) string. Useful because links are automatically URL-encoded.</p>
+<div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">urldecode ::</span> [<span class="dt">Char</span>] <span class="ot">-&gt;</span> <span class="dt">String</span>
+urldecode (<span class="ch">&#39;%&#39;</span><span class="fu">:</span>a<span class="fu">:</span>b<span class="fu">:</span>rest) <span class="fu">=</span> (chr <span class="fu">$</span> unhex [a,b]) <span class="fu">:</span> (urldecode rest)
+  <span class="kw">where</span> unhex str <span class="fu">=</span> <span class="kw">case</span> readHex str <span class="kw">of</span> [(number, _)] <span class="ot">-&gt;</span> number
+                                        _             <span class="ot">-&gt;</span> error <span class="fu">$</span> <span class="st">&quot;Could not parse &quot;</span> <span class="fu">++</span> str
+urldecode (c<span class="fu">:</span>rest)       <span class="fu">=</span> c<span class="fu">:</span>(urldecode rest)
+urldecode []             <span class="fu">=</span> []</code></pre></div>
+<style>
+/* Some styles for the actual document. */
+body {
+    font-family: sans-serif;
+    max-width: 35em;
+    margin: auto;
+}
+
+.title, .author {
+    text-align: center
+}
+
+.date {
+    display: none
+}
+
+blockquote {
+    margin: 0;
+    padding: 1px 1em;
+    background-color: rgba(0,0,0,0.1);
+}
+
+x-gloss {
+    font-variant: small-caps;
+}
+</style>
+</body>
+</html>
