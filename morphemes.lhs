@@ -220,12 +220,12 @@ This gets a little complicated. If the
 
 > formatAllomorph :: Allomorph -> String
 > formatAllomorph (Allomorph Free    _          x) = x
-> formatAllomorph (Allomorph Prefix Lexical     x) = "+" ++ x
+> formatAllomorph (Allomorph Suffix Lexical     x) = "+" ++ x
 > formatAllomorph (Allomorph Infix  Lexical     x) = "+" ++ x ++ "+"
-> formatAllomorph (Allomorph Suffix Lexical     x) =        x ++ "+"
-> formatAllomorph (Allomorph Prefix Grammatical x) = "-" ++ x
+> formatAllomorph (Allomorph Prefix Lexical     x) =        x ++ "+"
+> formatAllomorph (Allomorph Suffix Grammatical x) = "-" ++ x
 > formatAllomorph (Allomorph Infix  Grammatical x) = "-" ++ x ++ "-"
-> formatAllomorph (Allomorph Suffix Grammatical x) =        x ++ "-"
+> formatAllomorph (Allomorph Prefix Grammatical x) =        x ++ "-"
 
 > formatMeaning :: Meaning -> String
 > formatMeaning (Meaning Grammatical gloss) = tag "x-gloss" gloss
