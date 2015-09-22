@@ -54,20 +54,20 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>This Pandoc filter finds specially formatted links and converts them into (the rather verbose) morpheme notation.</p>
 <h1 id="syntax">Syntax</h1>
 <p>For example, to give the form:</p>
-<p>{MORPHEME, '<x-gloss>meaning</x-gloss>}: {allomorphα+}, {allomorphβ+}</p>
+<p>{MORPHEME, '<x-gloss>meaning</x-gloss>'}: {allomorphα+}, {allomorphβ+}</p>
 <p>One would type in a Markdown document:</p>
 <div class="sourceCode"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span class="ot">[MORPHEME, .meaning](:allomorphα+, allomorphβ+)</span></code></pre></div>
 <h2 id="shorthand">Shorthand</h2>
 <p>A shorthand is provided which allows for quick typing of the most common case: when a morpheme has only one allomorph:</p>
 <div class="sourceCode"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span class="ot">[-morpheme-, meaning](:)</span></code></pre></div>
 <p>Which renders as:</p>
-<p>{MORPHEME, 'meaning}: {-morpheme-}</p>
+<p>{MORPHEME, 'meaning'}: {-morpheme-}</p>
 <h1 id="examples">Examples</h1>
 <h2 id="shorthand-1">Shorthand</h2>
-<p>{BERRY, 'berry (kind of)}: {+berry}</p>
-<p>{’S, '<x-gloss>1st person possessive</x-gloss>}: {-’s}</p>
+<p>{BERRY, 'berry (kind of)'}: {+berry}</p>
+<p>{’S, '<x-gloss>1st person possessive</x-gloss>'}: {-’s}</p>
 <h2 id="longhand">Longhand</h2>
-<p>{S, '<x-gloss>plural</x-gloss>}: {-z}, {-s}, {-ɨz}</p>
+<p>{S, '<x-gloss>plural</x-gloss>'}: {-z}, {-s}, {-ɨz}</p>
 <h1 id="html-representation">HTML Representation</h1>
 <p>Its plausbile HTML representation may output using <a href="http://webcomponents.org/articles/introduction-to-custom-elements/">custom elements</a>.</p>
 <dl>
@@ -178,7 +178,7 @@ isFix _   <span class="fu">=</span> <span class="dt">False</span></code></pre></
 kind <span class="ch">&#39;+&#39;</span> <span class="fu">=</span> <span class="dt">Lexical</span>
 kind <span class="ch">&#39;-&#39;</span> <span class="fu">=</span> <span class="dt">Grammatical</span>
 kind c   <span class="fu">=</span> error <span class="fu">$</span> <span class="st">&quot;Undefined kind &quot;</span> <span class="fu">++</span> [c]</code></pre></div>
-<p>Another possible approach uses `Maybe to combine the last two functions into one:</p>
+<p>Another possible approach uses <code>Maybe</code> to combine the last two functions into one:</p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">fixKind ::</span> <span class="dt">Char</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">Kind</span>
 fixKind <span class="ch">&#39;+&#39;</span> <span class="fu">=</span> <span class="dt">Just</span> <span class="dt">Lexical</span>
 fixKind <span class="ch">&#39;-&#39;</span> <span class="fu">=</span> <span class="dt">Just</span> <span class="dt">Grammatical</span>
@@ -202,7 +202,7 @@ NOTE: If the gloss is lexical, use regular lowercase type (‘dog’); if the gl
 <div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">formatMorpheme ::</span> <span class="dt">Morpheme</span> <span class="ot">-&gt;</span> <span class="dt">String</span>
 formatMorpheme (<span class="dt">Morpheme</span> canonicalName meaning allomorphs<span class="fu">@</span>(_<span class="fu">:</span>_))
   <span class="fu">=</span> <span class="st">&quot;{&quot;</span> <span class="fu">++</span> (uppercase canonicalName) <span class="fu">++</span> <span class="st">&quot;, &quot;</span>
-        <span class="fu">++</span> <span class="st">&quot;&#39;&quot;</span> <span class="fu">++</span> (formatMeaning meaning) <span class="fu">++</span> <span class="st">&quot;}: &quot;</span>
+        <span class="fu">++</span> <span class="st">&quot;&#39;&quot;</span> <span class="fu">++</span> (formatMeaning meaning) <span class="fu">++</span> <span class="st">&quot;&#39;}: &quot;</span>
         <span class="fu">++</span> (formatAllomorphs allomorphs)
 formatMorpheme _ <span class="fu">=</span> error <span class="st">&quot;Morpheme must contain at least one allomorph&quot;</span></code></pre></div>
 <blockquote>
@@ -234,7 +234,7 @@ formatAllomorphs allomorphs
 </ol>
 </blockquote>
 <div class="sourceCode"><pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">formatAllomorph ::</span> <span class="dt">Allomorph</span> <span class="ot">-&gt;</span> <span class="dt">String</span>
-formatAllomorph (<span class="dt">Allomorph</span> <span class="dt">Free</span>    _          x) <span class="fu">=</span> x
+formatAllomorph (<span class="dt">Allomorph</span> <span class="dt">Free</span>   _          x) <span class="fu">=</span> x
 formatAllomorph (<span class="dt">Allomorph</span> <span class="dt">Suffix</span> <span class="dt">Grammatical</span> x) <span class="fu">=</span> <span class="st">&quot;-&quot;</span> <span class="fu">++</span> x
 formatAllomorph (<span class="dt">Allomorph</span> <span class="dt">Prefix</span> <span class="dt">Grammatical</span> x) <span class="fu">=</span>        x <span class="fu">++</span> <span class="st">&quot;-&quot;</span>
 formatAllomorph (<span class="dt">Allomorph</span> <span class="dt">Infix</span>  <span class="dt">Grammatical</span> x) <span class="fu">=</span> <span class="st">&quot;-&quot;</span> <span class="fu">++</span> x <span class="fu">++</span> <span class="st">&quot;-&quot;</span>
