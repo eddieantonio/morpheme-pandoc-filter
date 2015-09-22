@@ -225,7 +225,7 @@ To determine its kind, we also judge based on the whether the character is a
 > kind '-' = Grammatical
 > kind c   = error $ "Undefined kind " ++ [c]
 
-Another possible approach uses `Maybe to combine the last two functions into
+Another possible approach uses `Maybe` to combine the last two functions into
 one:
 
 < fixKind :: Char -> Maybe Kind
@@ -255,7 +255,7 @@ According to the Jordan Lachler's specification:
 > formatMorpheme :: Morpheme -> String
 > formatMorpheme (Morpheme canonicalName meaning allomorphs@(_:_))
 >   = "{" ++ (uppercase canonicalName) ++ ", "
->         ++ "'" ++ (formatMeaning meaning) ++ "}: "
+>         ++ "'" ++ (formatMeaning meaning) ++ "'}: "
 >         ++ (formatAllomorphs allomorphs)
 > formatMorpheme _ = error "Morpheme must contain at least one allomorph"
 
@@ -286,7 +286,7 @@ According to the Jordan Lachler's specification:
 </blockquote>
 
 > formatAllomorph :: Allomorph -> String
-> formatAllomorph (Allomorph Free    _          x) = x
+> formatAllomorph (Allomorph Free   _          x) = x
 > formatAllomorph (Allomorph Suffix Grammatical x) = "-" ++ x
 > formatAllomorph (Allomorph Prefix Grammatical x) =        x ++ "-"
 > formatAllomorph (Allomorph Infix  Grammatical x) = "-" ++ x ++ "-"
