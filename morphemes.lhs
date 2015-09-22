@@ -1,6 +1,6 @@
 % Morpheme Pandoc Filter
 % Eddie Antonio Santos
-% 0.2.0-2015-09-20
+% 0.2.1-2015-09-22
 
 This Pandoc filter finds specially formatted links and converts them into (the
 rather verbose) morpheme notation.
@@ -98,7 +98,7 @@ These other standard library functions will also be used:
 Types
 -----
 
-A morpheme contains itself, a string representing its "canoncical name", its
+A morpheme contains itself, a string representing its "canonical name", its
 meaning (lexical or grammatical), and any of its allomorphs. Every morpheme
 should have at least *one* "allomorph" (that is to say, its sole attested
 form).
@@ -198,24 +198,24 @@ Parsing allomorphs, however, is a bit more involved.
 We have to figure out its attachment based on the first and last character
 (dubbed `a` and `z`, respectively).
 
->   | isFix a && isFix z = Allomorph Infix  (kind a) (init rest)
->   | isFix a            = Allomorph Suffix (kind a) rest
->   | isFix z            = Allomorph Prefix (kind z) (init text)
+>   | isAffix a && isAffix z = Allomorph Infix  (kind a) (init rest)
+>   | isAffix a            = Allomorph Suffix (kind a) rest
+>   | isAffix z            = Allomorph Prefix (kind z) (init text)
 
-When neither the first or last characters are "'fixes", then it must be a free
-morpheme. Note that the kind (lexical or grammatical) does not really make a
-difference here, so we assign it arbitrarily.
+When neither the first or last characters are valid affix markers, then it
+must be a free morpheme. Note that the kind (lexical or grammatical) does not
+really make a difference here, so we assign it arbitrarily.
 
 >   | True               = Allomorph Free   Lexical  text
 >   where z = last text
 > parseAllomorph "" = undefined
 
-A "'fix" is either a `+` or `-` character.
+An affix marker is either a `+` or `-` character.
 
-> isFix :: Char -> Bool
-> isFix '+' = True
-> isFix '-' = True
-> isFix _   = False
+> isAffix :: Char -> Bool
+> isAffix '+' = True
+> isAffix '-' = True
+> isAffix _   = False
 
 To determine its kind, we also judge based on the whether the character is a
 `+` or `-`.
@@ -228,10 +228,10 @@ To determine its kind, we also judge based on the whether the character is a
 Another possible approach uses `Maybe` to combine the last two functions into
 one:
 
-< fixKind :: Char -> Maybe Kind
-< fixKind '+' = Just Lexical
-< fixKind '-' = Just Grammatical
-< fixKind _   = Nothing
+< affixKind :: Char -> Maybe Kind
+< affixKind '+' = Just Lexical
+< affixKind '-' = Just Grammatical
+< affixKind _   = Nothing
 
 Formatting
 ----------
