@@ -178,8 +178,9 @@ In the longhand, all parts are parsed separately.
 
 > parseLonghand :: String -> String -> Morpheme
 > parseLonghand pair alloText = let
->      (canonicalName, meaningText) = cleanCleave pair
+>      (formText, meaningText) = cleanCleave pair
 >      meaning = parseMeaning meaningText
+>      Allomorph _ _ canonicalName = parseAllomorph formText
 >      allomorphs = [parseAllomorph morph | morph <- cleanSplit alloText]
 >   in Morpheme canonicalName meaning allomorphs
 
