@@ -1,6 +1,6 @@
 % Morpheme Pandoc Filter
 % Eddie Antonio Santos
-% 0.2.1-2015-09-22
+% 0.3.0-2015-10-18
 
 This Pandoc filter finds specially formatted links and converts them into (the
 rather verbose) morpheme notation.
@@ -295,11 +295,22 @@ According to the Jordan Lachler's specification:
 > formatAllomorph (Allomorph Prefix Lexical     x) =        x ++ "+"
 > formatAllomorph (Allomorph Infix  Lexical     x) = "+" ++ x ++ "+"
 
-We'll just "gloss" over this function. 😉
+The meaning can either be "grammatical", in which write it in <span
+style="font-variant">small caps</span>. Else, write it verbatim.
 
 > formatMeaning :: Meaning -> String
-> formatMeaning (Meaning Grammatical gloss) = tag "x-gloss" gloss
+> formatMeaning (Meaning Grammatical gloss) = tag "x-gloss" (formatGloss gloss)
 > formatMeaning (Meaning _ text) = text
+
+We'll just "gloss" over this function. 😉
+
+> formatGloss :: String -> String
+> formatGloss = unwords . superscriptIt . words
+>   where superscriptIt ("1st":rest) = "1<sup>st</sup>" : superscriptIt rest
+>         superscriptIt ("2nd":rest) = "2<sup>nd</sup>" : superscriptIt rest
+>         superscriptIt ("3rd":rest) = "3<sup>rd</sup>" : superscriptIt rest
+>         superscriptIt (first:rest) = first : superscriptIt rest
+>         superscriptIt []           = []
 
 Utilities
 =========
